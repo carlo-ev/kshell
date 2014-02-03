@@ -1,45 +1,66 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 
-void getInput(char* com[5]);
+#define MAX_CMD 5
+
+char** getInput();
+char* trimwhitespace(char* str);
+bool isSpace(char x);
 
 int main(){
-	char s[256];
-	strcpy(s, "one two three");
-	char* token = strtok(s, " ");
-	while(token){
-		printf("token: %s\n", token);
-		token = strtok(NULL, " ");
-	}
-	//char command[5];
-	/* while(1){	
-		printf("c >");
-		fgets(command, 5, stdin);
-		printf("%s\n", command);
-		if (strcmp("exit", command) == 0 ){
+	char** commands;
+	int x;
+	char tt[256];
+	while(1){	
+		printf("k-+ ");
+		commands = getInput(commands);
+		strcpy(tt, "exit0");
+		if (strcmp(tt, commands[0]) == 0 ){
 			printf("exit");
-			exit(EXIT_SUCCESS);
+			break;
 		}
 	}
-	*/
 	return 0;
 }
 
-void getInput(char* com[5]){
-	char* commands;
-	int i = 0;
-	fgets(commands, 50, stdin);
-	commands = strdup(commands);
-	char* past;
-	past = strtok(commands, ",");
-	printf("%s\n", commands);
-	while(past != NULL){
-		past = strtok(commands, " ");
-		com[i] = past;
-		printf("%s\n",past);
+char** getInput(){
+	static char* com[MAX_CMD];
+	char input[256];
+	fgets(input, 256, stdin);
+	char* clean = trimwhitespace(input);
+	char* token = strtok(clean, " ");
+	int num = 0;
+	while(token){
+		com[num] = token;
+		printf("command: %s\n", token);
+		token = strtok(NULL, " ");
+		num++;
 	}
+	if(num < MAX_CMD-1)
+		com[num+1] = 0;
+	return com;
 }
+
+char* trimwhitespace(char *str){
+	char* end;
+
+	while(isSpace(*str)) str++;
+
+	end = str + strlen(str) - 1;
+	while(end > str && isSpace(*end)) end--;
+	end++;
+
+	*(end+1) = 0;
+
+	return str;
+}
+
+bool isSpace(char x){
+	return x == ' ';
+}
+
 
 
 
