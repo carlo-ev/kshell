@@ -8,21 +8,36 @@
 char** getInput();
 char* trimwhitespace(char* str);
 bool isSpace(char x);
+bool stringCmp(char* a, char*b);
 
 int main(){
 	char** commands;
 	int x;
-	char tt[256];
+	char ext[4];
+	strcpy(ext,"exit");
+	char ps[2];
+	strcpy(ps,"ps");
+	char* helper;
 	while(1){	
 		printf("k-+ ");
 		commands = getInput(commands);
-		strcpy(tt, "exit0");
-		if (strcmp(tt, commands[0]) == 0 ){
-			printf("exit");
-			break;
+		if(stringCmp(ps, commands[0]) == 0){
+			if(commands[1] != 0 )
+				system( strcat( strcat(ps, " "), commands[1]) );
+			else
+				system(ps);
+		}
+		
+		if (stringCmp(ext, commands[0]) == 0 ){
+			exit(0);
 		}
 	}
 	return 0;
+}
+
+bool stringCmp(char* a, char* b){
+	int size = strlen(a) <= strlen(b) ? strlen(a) : strlen(b);
+	return strncmp(a, b, size);
 }
 
 char** getInput(){
