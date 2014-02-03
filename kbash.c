@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <unistd.h>
 
 #define MAX_CMD 5
 
@@ -17,7 +18,9 @@ int main(){
 	strcpy(ext,"exit");
 	char ps[2];
 	strcpy(ps,"ps");
-	char* helper;
+	char kill[4];
+	strcpy(kill,"kill");
+	int* helper;
 	while(1){	
 		printf("k-+ ");
 		commands = getInput(commands);
@@ -27,7 +30,13 @@ int main(){
 			else
 				system(ps);
 		}
-		
+		if (stringCmp(kill, commands[0]) == 0){
+			if(commands[1] == 0)
+				printf("%s\n", "No Process ID supplied, suiciding..." );
+			else{
+				execlp( strcat("kill ", commands[1]), " ", NULL );
+			}
+		}
 		if (stringCmp(ext, commands[0]) == 0 ){
 			exit(0);
 		}
