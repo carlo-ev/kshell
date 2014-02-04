@@ -20,26 +20,79 @@ int main(){
 	strcpy(ps,"ps");
 	char kill[4];
 	strcpy(kill,"kill");
-	int* helper;
+	char cat[3];
+	strcpy(cat, "cat");
 	while(1){	
-		printf("k-+ ");
+		printf("k~# ");
 		commands = getInput(commands);
 		if(stringCmp(ps, commands[0]) == 0){
 			if(commands[1] != 0 )
 				system( strcat( strcat(ps, " "), commands[1]) );
 			else
 				system(ps);
-		}
-		if (stringCmp(kill, commands[0]) == 0){
+		}else if (stringCmp(kill, commands[0]) == 0){
 			if(commands[1] == 0)
 				printf("%s\n", "No Process ID supplied, suiciding..." );
 			else{
-				execlp( strcat("kill ", commands[1]), " ", NULL );
+				const char* comh = "kill"; 
+				commands[1][4] = '\0';
+				char* helper[3] = {commands[0], commands[1], (char *) 0};
+				execvp( comh, helper);
 			}
-		}
-		if (stringCmp(ext, commands[0]) == 0 ){
+		}else if(stringCmp(cat, commands[0]) == 0 ){
+			if(commands[1] == 0){
+				printf("%s\n", "Sorry no file nor option specified, exiting bruv.");
+			}else if(stringCmp(">", commands[1])==0 && commands[2] != 0){
+				FILE* doc;
+				doc = fopen(commands[2], "w+");
+				printf("%s\n", "This version of cat online support documents saving on ENTER or EOF, pls take note!!");
+				char chars[256];
+				int line = 0;
+				printf("%d| ", line);
+				while(fgets(chars, 256, stdin) != NULL){
+					if(feof(stdin)){
+						break;
+					}
+					line++;
+					printf("%d| ",line);
+					fprintf(doc, "%s\n", chars);
+				} 
+				printf("%s\n", "EOF");
+				fclose(doc);
+			}else if(stringCmp("|", commands[2]) == 0){
+				if(commands[1] != 0){
+					FILE* in;
+					FILE* out;
+					char buff[512];
+			
+					if(!(in = popen(strcat("cat ", commands[1]), "r"))){
+						return 1;
+					}
+					if(!(out = popen("more", "w"))){
+						return 1;
+					}
+					while(fgets(buff, sizeof(buff), in) != NULL){
+						fputs(buff, out);
+					}
+					pclose(in);
+					pclose(out);
+				}else{
+					printf("%s\n", "Sorry specified file could not be opened.");
+				}
+			}
+		}else if (stringCmp(ext, commands[0]) == 0 ){
 			exit(0);
-		}
+		}else{
+			if(commands[0] == 0 ){
+				if(commands[1] == 0){
+					char* helper[3] = {commands[0], "&", (char *) 0};
+					execvp(commands[0], helper);
+				}else{
+					char* helper[3] = {commands[0], commands[1],(char *) 0 };
+					execvp(commands[0], helper);
+				}
+			}
+		}		
 	}
 	return 0;
 }
