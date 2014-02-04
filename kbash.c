@@ -79,6 +79,19 @@ int main(){
 				}else{
 					printf("%s\n", "Sorry specified file could not be opened.");
 				}
+			}else{
+				FILE* doc;
+				doc = fopen(commands[1], "r");
+				if(doc != NULL){
+					char line[512];
+					int li = 0;
+					while(fgets(line, 512, doc) != NULL){
+						printf("%d| %s\n", li, line);
+					}
+					fclose(doc);
+				}else{
+					printf("%s\n", "Sorry Couldnt Open File.");
+				}
 			}
 		}else if (stringCmp(ext, commands[0]) == 0 ){
 			exit(0);
