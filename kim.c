@@ -4,19 +4,22 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <dirent.h>
+#include <pwd.h>
+#include <grp.h>
+#include <time.h>
 
 char* getInput();
 void clean(char* full);
 char** parseCommands(char* inp);
 int countCommands(char* in);
-char** getDirectoryFiles(char* directory);
+void listFiles(char* directory, int option);
 
 int main(){
 	static char* input;
 	static char** commands;
 	static char cDir[256];
-	static char** filesInD;
 	if(getcwd(cDir, sizeof(cDir)) != NULL)  
 		printf("Current Directory: %s\n", cDir);
 	else{
@@ -24,7 +27,6 @@ int main(){
 		return 1;
 	}
 	while(1){
-		getDirectoryFiles(cDir);
 		printf("kim#~ ");
 		input = getInput();
 		commands = parseCommands(input);
@@ -35,33 +37,88 @@ int main(){
 			free(commands);
 			break;
 		}else if(!strcmp(commands[0], "ls")){
-			execvp(commands[0], commands);
+			int opcion = 0;
+			if(commands[1] != NULL){
+				if(!strcmp(commands[1], "-a")){
+					opcion = 1;
+				}else if(!strcmp(commands[1], "-i")){
+					opcion = 2;
+				}else if(!strcmp(commands[1], "-h")){
+					opcion = 3;
+				}else if(!strcmp(commands[1], "-l")){
+					opcion = 4;
+				}
+			}
+			listFiles(cDir, opcion);
+		}else if(!strcmp(commands[0], "cd")){
+			if(commands[1] != NULL){
+				strcat(cDir, "/");
+				strcat(cDir, commands[1]);
+				if(chdir(cDir))
+					printf("Sorry Specified parameter is not a folder, or we couldn't change dir at the moment\n");
+				memset(cDir, 0, 255);
+				getcwd(cDir, sizeof(cDir));
+				printf("New Directory: %s\n", cDir);
+			}else
+				printf("No Directory Specified\n");
+		}else if(!strcmp(commands[0], "mkdir")){
+			printf("oon make dir\n");
+			if(commands[1] != NULL){
+				if(mkdir(commands[1], 0777))
+					printf("Sorry couldn't create folder at the moment\n");
+				else
+					printf("Created Dirctory: %s\n", commands[1]);		
+			}else
+				printf("No Directory Specified\n");
 		}
 	}
 
 }
 
-char** getDirectoryFiles(char* directory){
+void listFiles(char* directory, int option){
 	DIR *dir = opendir(directory);
-	char** files;
+	char name[256];
+	
 	if(dir){
 		struct dirent* stats_dir;
-		int fileCount = 0;
-		while((stats_dir = readdir(dir)) != NULL) fileCount++;
-		rewinddir(dir);
-		files = (char**)malloc(fileCount);
-		fileCount = 0;
+		struct stat stats_file;
 		while((stats_dir = readdir(dir)) != NULL){
-			files[fileCount] = (char*)malloc(strlen(stats_dir->d_name));	
-		 	strcpy(files[fileCount], stats_dir->d_name);
-			printf("File name: %s\n", files[fileCount]);
-			fileCount++;	
+			strcpy(name, stats_dir->d_name);
+			char file[256];
+			strcpy(file, directory);
+			strcat(file, "/");
+			strcat(file, stats_dir->d_name);
+			switch(option){
+				default:
+				case 0: 
+					if(!(name[0]=='.'))
+						printf("%s	", name);
+					break;
+				case 1:
+					printf("%s	", name);
+					break;
+				case 2:
+					printf("%s	", name);
+					break;
+				case 3:
+					if(!(name[0]=='.')){
+						stat(file, &stats_file);
+						printf("%ld	%s", (long)stats_dir->d_ino, name);
+					}
+					break;
+				case 4:
+					if(!(name[0]=='.')){
+						stat(file, &stats_file);
+						printf("%lo %ld %s %s %lld %s %s\n", (unsigned long)stats_file.st_mode, (long)stats_file.st_nlink, (getpwuid(stats_file.st_uid))->pw_name, (getgrgid(stats_file.st_gid))->gr_name, (long long)stats_file.st_size, ctime(&stats_file.st_mtime), name);
+					}
+					break;
+
+			}
 		}
-		
+		printf("\n");
 	}
-	//closedir(dir);
+	closedir(dir);
 	//glib double list error of corruption no idea why, dir stays open
-	return files;
 }
 
 char** parseCommands(char* inp){
