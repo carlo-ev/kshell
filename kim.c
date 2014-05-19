@@ -9,12 +9,15 @@
 #include <pwd.h>
 #include <grp.h>
 #include <time.h>
+#include <errno.h>
 
 char* getInput();
 void clean(char* full);
 char** parseCommands(char* inp);
 int countCommands(char* in);
 void listFiles(char* directory, int option);
+void moveFile(char* filename, char* destination);
+void createFile(char* filename);
 
 int main(){
 	static char* input;
@@ -26,13 +29,14 @@ int main(){
 		printf("Sorry couldn't get working directory\n");
 		return 1;
 	}
+	write(1, "\33[H\33[2J", 7);
 	while(1){
-		printf("kim#~ ");
+		printf("kim~%s$ ", cDir);
 		input = getInput();
 		commands = parseCommands(input);
 		printf("Command: %s\n", commands[0]);
 		if(!strcmp(commands[0], "exit")){
-			printf("Adios!\n");
+			printf("kIM - K shell Improved. cmev\n");
 			free(input);
 			free(commands);
 			break;
@@ -62,17 +66,90 @@ int main(){
 			}else
 				printf("No Directory Specified\n");
 		}else if(!strcmp(commands[0], "mkdir")){
-			printf("oon make dir\n");
 			if(commands[1] != NULL){
 				if(mkdir(commands[1], 0777))
 					printf("Sorry couldn't create folder at the moment\n");
 				else
-					printf("Created Dirctory: %s\n", commands[1]);		
+					printf("Created Directory: %s\n", commands[1]);		
 			}else
 				printf("No Directory Specified\n");
+		}else if(!strcmp(commands[0], "rm")){
+			if(commands[1] != NULL){
+				if(!remove(commands[1]))
+					printf("File/Folder %s succesfully deleted.\n", commands[1]);
+				else
+					printf("Couldn't Remove file at the moment.\n");
+			}else
+				printf("No File/Directory Specified\n");	
+		}else if(!strcmp(commands[0], "clear")){
+			write(1, "\33[H\33[2J", 7);
+		}else if(!strcmp(commands[0], "chmod")){
+			if(commands[1] != NULL){
+				strcat(cDir, commands[0]);
+				if(chmod(cDir, atoi(commands[1])))
+					printf("File/Folder protected succesfully.\n");
+				else	
+					printf("Couldn't protect file/folder at the moment.\n");
+				memset(cDir, 0, 255);
+				getcwd(cDir, sizeof(cDir));
+			}else
+				printf("No File/Folder specified.\n");
+		}else if(!strcmp(commands[0], "mv")){
+			if(commands[1]!=NULL && commands[2]!=NULL)
+				moveFile(commands[1], commands[2]);
+			else
+				printf("Destination folder or Filename not specified\n");
+		}else if(!strcmp(commands[0], "touch")){
+			if(commands[1] != NULL)
+				createFile(commands[1]);
+			else
+				printf("File name not specified.\n");
+		}else{
+			printf("Sorry command not supported by the shell.\n");
 		}
+		free(commands);
+		memset(input, 0, sizeof(input));
 	}
+}
 
+void createFile(char* filename){
+	FILE* file;
+	fopen(filename, "wb");
+	if(file!= NULL){
+		fclose(file);
+		printf("Sorry couldn't create file.\n");
+	} 
+}
+
+void moveFile(char* filename, char* destination){
+	char temp[256];
+	strcpy(temp, destination);
+	strcat(temp, "/");
+	strcat(temp, filename);
+	FILE *file, *dest;
+	file = fopen(filename, "rb");
+	dest = fopen(temp, "wb");
+
+	int buf;
+	if(file==NULL || dest==NULL){
+		fclose(file);
+		fclose(dest);
+		printf("Error opening one/both of the files.\n");
+	}else{
+		while(1){
+			buf = fgetc(file);
+			if(!feof(file))
+				fputc(buf, dest);
+			else
+				break;
+		}
+		fclose(file);
+		fclose(dest);
+		printf("File copied succesfully.\n");
+		if(!remove(filename))
+			printf("But we couldn't delete the original file.\n");
+	}
+	
 }
 
 void listFiles(char* directory, int option){
