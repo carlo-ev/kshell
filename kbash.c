@@ -24,7 +24,7 @@ int main(){
 	strcpy(cat, "cat");
 	while(1){	
 		printf("k~# ");
-		commands = getInput(commands);
+		commands = getInput();
 		if(stringCmp(ps, commands[0]) == 0){
 			if(commands[1] != 0 )
 				system( strcat( strcat(ps, " "), commands[1]) );
