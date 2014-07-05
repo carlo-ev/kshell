@@ -34,7 +34,7 @@ int main(){
 		printf("kim~%s$ ", cDir);
 		input = getInput();
 		commands = parseCommands(input);
-		printf("Command: %s\n", commands[0]);
+		//printf("Command: %s\n", commands[0]);
 		if(!strcmp(commands[0], "exit")){
 			printf("kIM - K shell Improved. cmev\n");
 			free(input);
